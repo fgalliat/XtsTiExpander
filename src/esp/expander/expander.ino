@@ -17,6 +17,8 @@
  * 17  -> TX2 -> ProMini "RX"
  **/
 
+#include "ticomm.h"
+
 #define PCSerial Serial
 // 16 RX2 - 17 TX2
 #define TISerial Serial2
