@@ -18,6 +18,8 @@
  **/
 
 #include "globals.h"
+
+#include "screen.h"
 #include "ticomm.h"
 
 
@@ -25,6 +27,8 @@
 void setup() {
     PCSerial.begin(115200);
     TISerial.begin(115200);
+
+    setupScreen();
 }
 
 void handleTiComm() {
