@@ -27,6 +27,8 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+void displayGauge(int percent);
+
 bool setupScreen() {
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -41,10 +43,31 @@ bool setupScreen() {
 
   display.println("Hello TiExpander");
 
+  // display progress gauge 
+  displayGauge(64);
+  // display progress gauge 
+
   display.display();
 
   return true;
 }
 
+// display progress gauge 
+void displayGauge(int percent) {
+  int gaugeWidth = 100 + 4;
+  int gaugeHeight = 5;
+
+  display.fillRect((SCREEN_WIDTH - gaugeWidth)/2, SCREEN_HEIGHT - gaugeHeight - 4, gaugeWidth, gaugeHeight, 
+      SSD1306_BLACK);
+
+  display.drawRoundRect((SCREEN_WIDTH - gaugeWidth)/2, SCREEN_HEIGHT - gaugeHeight - 4, gaugeWidth, gaugeHeight,
+      3, SSD1306_WHITE);
+
+  int x = ((SCREEN_WIDTH - gaugeWidth)/2)+2;
+  int y = SCREEN_HEIGHT - gaugeHeight - 4 + 2;
+  display.drawLine(x, y, x+percent, y, SSD1306_WHITE);
+
+  display.display();
+}
 
 #endif
