@@ -15,7 +15,7 @@
  #define IN_BIN_SENDVAR_NAME "\x89\x06\x01"
  // + type 1 byte
  #define IN_BIN_SENDVAR_TYPE "\x89\x06\x02"
- // + size 16b MSB-LSB
+ // + size 32b MSB-LSB
  #define IN_BIN_SENDVAR_SIZE "\x89\x06\x03"
  // + x(size) Data bytes
  #define IN_BIN_SENDVAR_DATA "\x89\x06\x04"
