@@ -65,9 +65,10 @@ bool enterRecvVarMode() {
         TISerial.read();
 
         char varName[8+1]; memset( varName, 0x00, 8+1 );
-        for(int i=0; i < 8; i++) {
+        for(int i=0; i < 8+1; i++) {
+            while( TISerial.available() <= 0 ) { delay(2); }
             int ch = TISerial.read();
-            if ( ch == -1 ) { return false; } // not enough bytes
+            // if ( ch == -1 ) { return false; } // not enough bytes
             if ( ch == 0 ) { break; } // end of VarName
             varName[i] = (char)ch;
         }
@@ -107,8 +108,9 @@ bool enterRecvVarMode() {
                     for(uint32_t i=0; i < varSize; i++) {
                         // FIXME : do better
                         while( TISerial.available() <= 0 ) { delay(2); }
-                        PCSerial.println( TISerial.read(), HEX );
+                        PCSerial.print( TISerial.read(), HEX ); PCSerial.print( ' ' );
                     }
+                    PCSerial.println();
 
                     while( TISerial.available() <= 0 ) { delay(2); }
                     if ( TISerial.available() >= 3 ) {
