@@ -105,10 +105,15 @@ bool enterRecvVarMode() {
                         return false;
                     }
 
+                    uint32_t step = (uint32_t)((double)varSize / (double)100.0);
+                    if ( step < 20 ) { step = 20; }
+
                     for(uint32_t i=0; i < varSize; i++) {
                         // FIXME : do better
                         while( TISerial.available() <= 0 ) { delay(2); }
-                        PCSerial.print( TISerial.read(), HEX ); PCSerial.print( ' ' );
+                        int bte = TISerial.read();
+                        PCSerial.print( bte, HEX ); PCSerial.print( ' ' );
+                        if ( i % step == 0 ) { displayGauge( (int)( (uint32_t)100 * i / varSize  ) ); }
                     }
                     PCSerial.println();
 

@@ -54,6 +54,11 @@ bool setupScreen() {
 
 // display progress gauge 
 void displayGauge(int percent) {
+
+  display.setCursor(0, 0);
+  display.fillRect(0, 0, 100, 10, SSD1306_BLACK);
+  display.println(percent);
+
   int gaugeWidth = 100 + 4;
   int gaugeHeight = 5;
 
