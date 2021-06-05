@@ -27,6 +27,9 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+bool SCR_READY = false;
+
+
 void displayGauge(int percent);
 
 bool setupScreen() {
@@ -35,6 +38,7 @@ bool setupScreen() {
     Serial.println(F("SSD1306 allocation failed"));
     return false;
   }
+  SCR_READY = true;            // use it later to redirect to Serial if not OK
 
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale

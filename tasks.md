@@ -9,11 +9,17 @@ Xtase - fgalliat @June 04  2021
   
 - **Expander Hardware**
   - [x] ESP core (base wirings)
-  - [ ] ESP SPIFFS
+  - [x] ESP SPIFFS
   - [x] ESP Screen
   - [ ] ESP Button
   - [ ] ESP Buzzer
   - [ ] ESP / TiComm Control lines
+
+- **Expander macro Functions**
+
+  - [ ] Ti -> Storage (Ti request)
+  - [ ] Storage -> Ti (Ti request)
+  - [ ] PC -> Storage ( -> Ti ) (PC request)
 
 - **Expander Functions**
 

@@ -21,3 +21,8 @@
 #define PCSerial Serial
 // 16 RX2 - 17 TX2
 #define TISerial Serial2
+
+// (!!) BEWARE w/ that FLAG
+// #define FORMAT_SPIFFS_IF_FAILED true
+#define FORMAT_SPIFFS_IF_FAILED false
+

@@ -20,6 +20,8 @@
 #include "globals.h"
 
 #include "screen.h"
+#include "storage.h"
+
 #include "ticomm.h"
 
 
@@ -29,6 +31,7 @@ void setup() {
     TISerial.begin(115200);
 
     setupScreen();
+    setupStorage();
 }
 
 void handleTiComm() {
@@ -57,19 +60,21 @@ void loop() {
         while( PCSerial.available() > 0 ) { PCSerial.read(); }
         PCSerial.println("OK let me see if it works....");
 
-        TISerial.print("\\SS\n"); // request a ScreenDump on Ti (ascii mode)
-        while( TISerial.available() <= 0 ) { delay(10); }
+        listRoot();
 
-        const int dumpSize = 240 * 128;
-        int cpt = 0;
-        while( cpt < dumpSize ) {
-            while( TISerial.available() <= 0 ) { delay(2); }
-            while( TISerial.available() > 0 ) {
-                // not very efficient ... just for test purposes
-                PCSerial.write( TISerial.read() );
-                cpt++;
-            }
-        }
+        // TISerial.print("\\SS\n"); // request a ScreenDump on Ti (ascii mode)
+        // while( TISerial.available() <= 0 ) { delay(10); }
+
+        // const int dumpSize = 240 * 128;
+        // int cpt = 0;
+        // while( cpt < dumpSize ) {
+        //     while( TISerial.available() <= 0 ) { delay(2); }
+        //     while( TISerial.available() > 0 ) {
+        //         // not very efficient ... just for test purposes
+        //         PCSerial.write( TISerial.read() );
+        //         cpt++;
+        //     }
+        // }
 
     }
 
