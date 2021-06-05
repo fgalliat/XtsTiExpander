@@ -17,13 +17,13 @@ Xtase - fgalliat @June 04  2021
 
 - **Expander macro Functions**
 
-  - [ ] Ti -> Storage (Ti request)
+  - [x] Ti -> Storage (Ti request)
   - [ ] Storage -> Ti (Ti request)
   - [ ] PC -> Storage ( -> Ti ) (PC request)
 
 - **Expander Functions**
 
-  - [ ] Save TiVar to internal Storage (ex. popbin.1C / xtsterm2.21 -> .1C, .21 is the var type)
+  - [x] Save TiVar to internal Storage (ex. popbin.1C / xtsterm2.21 -> .1C, .21 is the var type)
 
   - [ ] Get free Storage space
 

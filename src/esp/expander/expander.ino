@@ -60,17 +60,19 @@ void loop() {
         while( PCSerial.available() > 0 ) { PCSerial.read(); }
         PCSerial.println("OK let me see if it works....");
 
-        int error = 0;
-        File f = createTiFile("hello", 0x1C, error);
-        if ( error != 0 ) {
-            PCSerial.println("There was a WRITE error !");
-        } else {
-            f.println( "Hello World" );
-            f.close();
-        }
+        // WORKING
+        // int error = 0;
+        // File f = createTiFile("hello", 0x1C, error);
+        // if ( error != 0 ) {
+        //     PCSerial.println("There was a WRITE error !");
+        // } else {
+        //     f.println( "Hello World" );
+        //     f.close();
+        // }
 
         listRoot();
 
+        // WORKING
         // TISerial.print("\\SS\n"); // request a ScreenDump on Ti (ascii mode)
         // while( TISerial.available() <= 0 ) { delay(10); }
 

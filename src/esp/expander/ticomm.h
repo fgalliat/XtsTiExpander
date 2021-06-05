@@ -99,6 +99,18 @@ bool enterRecvVarMode() {
                 // ------ Screen output --------
                 displayIncomingVar( varName, varType, varSize );
                 // ------ Screen output --------
+                // ------ Storage output --------
+                bool store = STORAGE_READY;
+                File f;
+                if ( store ) {
+                    int error = 0;
+                    f = createTiFile(varName, varType, error);
+                    if ( error != 0 ) {
+                        store = false;
+                        displayTitle("WRITE error !");
+                    }
+                }
+                // ------ Storage output --------
 
                 while( TISerial.available() <= 0 ) { delay(2); }
 
@@ -106,6 +118,9 @@ bool enterRecvVarMode() {
                     uint8_t dataDef[3];
                     TISerial.readBytes( dataDef, 3 );
                     if ( strncmp( (char*)dataDef, IN_BIN_SENDVAR_DATA, 3 ) != 0 ) {
+                        if ( store ) {
+                            f.close();
+                        }
                         return false;
                     }
 
@@ -117,6 +132,9 @@ bool enterRecvVarMode() {
                         while( TISerial.available() <= 0 ) { delay(2); }
                         int bte = TISerial.read();
                         // PCSerial.print( bte, HEX ); PCSerial.print( ' ' );
+                        if ( store ) {
+                            f.write( bte );
+                        }
 
                         long t1 = millis();
                         if ( t1 - t0 > 100 ) {
@@ -127,6 +145,9 @@ bool enterRecvVarMode() {
                             }
                             t0 = t1;
                         }
+                    }
+                    if ( store ) {
+                        f.close();
                     }
                     displayGauge( 100 );
                     // PCSerial.println();
