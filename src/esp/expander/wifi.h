@@ -85,6 +85,7 @@ void stopWiFi() {
 
 void lsToTelnet(Stream* client);
 void catToTelnet(Stream* client, char* varName, bool hexMode=false);
+void sendToTi(Stream* client, char* varName);
 
 void loopTelnet() {
     if (wifiMulti.run() != WL_CONNECTED) {
@@ -144,14 +145,17 @@ void loopTelnet() {
                 } else if ( startsWith( cmd, "ls" ) ) {
                     lsToTelnet( &serverClients[i] );
                 } else if ( startsWith( cmd, "cat " ) ) {
-                    char* filename = &cmd[4];
-                    catToTelnet( &serverClients[i], filename, false );
+                    char* varName = &cmd[4];
+                    catToTelnet( &serverClients[i], varName, false );
                 } else if ( startsWith( cmd, "hex " ) ) {
-                    char* filename = &cmd[4];
-                    catToTelnet( &serverClients[i], filename, true );
+                    char* varName = &cmd[4];
+                    catToTelnet( &serverClients[i], varName, true );
+                } else if ( startsWith( cmd, "send " ) ) {
+                    char* varName = &cmd[5];
+                    sendToTi( &serverClients[i], varName );
                 } else if ( startsWith( cmd, "find " ) ) {
-                    char* filename = &cmd[5];
-                    char* found = findTiFile( filename );
+                    char* varName = &cmd[5];
+                    char* found = findTiFile( varName );
                     serverClients[i].print("Found : ");
                     serverClients[i].println(found == NULL ? "<NULL>" : found);
                 } else {
@@ -168,6 +172,20 @@ void loopTelnet() {
       }
     }
 
+}
+
+// from ticomm.h
+bool sendTiVar(char* varName);
+
+void sendToTi(Stream* client, char* varName) {
+  // sends from SPIFFS to calc
+  client->println("Sending variable");
+  bool ok = sendTiVar(varName);
+  if ( ok ) {
+    client->println("Sucessfully sent variable");
+  } else {
+    client->println("Failed to send variable");
+  }
 }
 
 void lsToTelnet(Stream* client) {

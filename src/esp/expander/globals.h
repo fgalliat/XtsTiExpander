@@ -33,3 +33,10 @@ bool startsWith(char* strFull, char* strToFind) {
     if ( strlen( strFull ) < strlen( strToFind ) ) { return false; }
     return strncmp( strFull, strToFind, strlen( strToFind ) ) == 0;
 }
+
+// 0C -> 12
+int hexStrToInt(char* str) {
+    int hexNumber;
+    sscanf(str, "%02X", &hexNumber);
+    return hexNumber;
+}

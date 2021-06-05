@@ -96,6 +96,13 @@ void displayIncomingVar(char* varName, uint8_t varType, uint32_t varSize) {
   displayTitle(msg);
 }
 
+void displayOutgoingVar(char* varName, uint8_t varType, uint32_t varSize) {
+  displayCls();
+  char msg[64+1]; memset( msg, 0x00, 64+1 );
+  sprintf(msg, "< Var  : %s #%02X\n< Size : %ld", varName, varType, varSize);
+  displayTitle(msg);
+}
+
 void displayByteHex(uint8_t bte) {
   char msg[3+1]; memset( msg, 0x00, 3+1 );
   sprintf(msg, "%02X ", bte);

@@ -228,6 +228,107 @@ bool recvCBLValue() {
   return false;
 }
 
+// Ti silent mode
+bool sendTiVar(char* varName) {
+    // read potential Garbage datas
+    while ( TISerial.available() ) { TISerial.read(); }
+
+    char* filename = findTiFile( varName );
+    if ( filename == NULL ) {
+        displayCls();
+        displayTitle("(!!) FAIL FINDING VAR");
+        displayPrintln( varName );
+        displayBlitt();
+        return false;
+    }
+
+    int nlength = strlen( filename );
+    char* strVarType = &filename[ nlength - 2 ];
+    uint8_t varType = (uint8_t)hexStrToInt( strVarType );
+
+    File file = SPIFFS.open(filename);
+    if(!file || file.isDirectory()){
+        displayCls();
+        displayTitle("(!!) FAIL OPENING VAR");
+        displayPrintln( varName );
+        displayBlitt();
+        return false;
+    }
+
+    long varSize = file.size();
+    displayOutgoingVar( varName, varType, varSize );
+
+    int lastPercent = 0;
+    long t0 = 0;
+
+    TISerial.print("\\SP");
+    TISerial.write( (uint8_t)(varSize >> 8) ); TISerial.write( (uint8_t)(varSize % 256) );
+    TISerial.print( varName ); TISerial.write( 0x00 );
+    TISerial.write( 0x00 ); // non ASM content
+    TISerial.write( 0x00 ); // no autorun
+    char resp[64+1]; memset( resp, 0x00, 64+1 );
+    TISerial.readBytesUntil( '\n', resp, 64 );
+    if ( ! startsWith( resp, "I:" ) ) {
+        // may had an error
+        displayCls();
+        displayTitle("(!!) FAIL SENDING VAR");
+        displayPrintln( resp );
+        displayBlitt();
+        file.close();
+        return false;
+    }
+    while( TISerial.available() == 0 ) { delay(2); }
+    int code = TISerial.read();
+    // code should be 0x01
+    TISerial.write( 0x00 ); // - ready to send datas
+
+    const int packetLen = 64;
+    char packet[ packetLen ];
+    long i = 0;
+
+    while( file.available() ) {
+      while( TISerial.available() == 0 ) { delay(2); }
+      int handshake = TISerial.read();
+      // handshake should be 0x02
+      int read = file.readBytes( packet, packetLen );
+      TISerial.write( (uint8_t*)packet, read);
+
+      i += read;
+
+        // ----- Progress Gauge -----
+        long t1 = millis();
+        if ( t1 - t0 > 100 ) {
+            int percent = (int)( (long)100 * i / varSize  );
+            if ( percent - lastPercent > 5 ) { // only if more than 5% delta
+                displayGauge( percent );
+                lastPercent = percent;
+            }
+            t0 = t1;
+        }
+    }
+
+    memset( resp, 0x00, 64+1 );
+    TISerial.readBytesUntil( '\n', resp, 64 );
+    if ( ! startsWith( resp, "I:" ) ) {
+        // may had an error
+        displayCls();
+        displayTitle("(!!) FAIL WH.SENDING VAR");
+        displayPrintln( resp );
+        displayBlitt();
+        file.close();
+        return false;
+    }
+
+    // if required autorun --> have to read another line of text
+
+    displayGauge( 100 );
+    file.close();
+
+    // durring that time - the Arduino ProMini (TiComm) reboots ...
+
+    return true;   
+}
+
 // -------------------------------------------------
 void handleTiActionRequest(char* str) {
     if ( startsWith( str, "get:" ) ) {
