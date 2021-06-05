@@ -30,5 +30,6 @@
 
 bool startsWith(char* strFull, char* strToFind) {
     if ( strToFind == NULL || strFull == NULL ) { return false; }
+    if ( strlen( strFull ) < strlen( strToFind ) ) { return false; }
     return strncmp( strFull, strToFind, strlen( strToFind ) ) == 0;
 }
