@@ -242,6 +242,13 @@ void handleTiActionRequest(char* str) {
         displayPrintln("> Req a WiFi Op : ");
         displayPrintln( op );
         displayBlitt();
+
+        if ( startsWith( op, "start" ) ) {
+            startWiFi();
+        } else if ( startsWith( op, "stop" ) ) {
+            stopWiFi();
+        }
+
     } else {
         displayCls();
         displayPrintln("> Req a ???? : ");

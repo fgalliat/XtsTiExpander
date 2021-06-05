@@ -21,6 +21,7 @@
 
 #include "screen.h"
 #include "storage.h"
+#include "wifi.h"
 
 #include "ticomm.h"
 
@@ -56,6 +57,11 @@ void handleTiComm() {
 
 
 void loop() {
+
+    if ( WIFI_READY ) {
+        loopTelnet();
+    }
+
     if ( PCSerial.available() > 0 ) { // something from PC
         while( PCSerial.available() > 0 ) { PCSerial.read(); }
         PCSerial.println("OK let me see if it works....");

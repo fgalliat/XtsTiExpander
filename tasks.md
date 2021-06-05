@@ -11,10 +11,11 @@ Xtase - fgalliat @June 04  2021
   - [x] ESP core (base wirings)
   - [x] ESP SPIFFS
   - [x] ESP Screen
+  - [x] ESP WiFi
   - [ ] ESP Button
   - [ ] ESP Buzzer
   - [ ] ESP / TiComm Control lines
-
+  
 - **Expander macro Functions**
 
   - [x] Ti -> Storage (Ti request)
@@ -93,6 +94,6 @@ Xtase - fgalliat @June 04  2021
     - [ ] Pseudo ESP shell
     - [ ] Sound tone String
     - [ ] WiFi REST
-    - [ ] WiFi telnet
+    - [x] WiFi telnet
     - [ ] (.md reader -> ESP Local / Web Remote content)
 
