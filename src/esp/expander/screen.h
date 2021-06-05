@@ -43,9 +43,7 @@ bool setupScreen() {
 
   display.println("Hello TiExpander");
 
-  // display progress gauge 
-  displayGauge(64);
-  // display progress gauge 
+  // displayGauge(64);
 
   display.display();
 
@@ -54,25 +52,43 @@ bool setupScreen() {
 
 // display progress gauge 
 void displayGauge(int percent) {
+  const int gaugeWidth = 100 + 4;
+  const int gaugeHeight = 5;
 
-  display.setCursor(0, 0);
-  display.fillRect(0, 0, 100, 10, SSD1306_BLACK);
-  display.println(percent);
+  int x = ((SCREEN_WIDTH - gaugeWidth)/2);
+  int y = SCREEN_HEIGHT - gaugeHeight - 4;
 
-  int gaugeWidth = 100 + 4;
-  int gaugeHeight = 5;
+  display.fillRect(x, y, gaugeWidth, gaugeHeight, SSD1306_BLACK);
+  display.drawRoundRect(x, y, gaugeWidth, gaugeHeight, 3, SSD1306_WHITE);
 
-  display.fillRect((SCREEN_WIDTH - gaugeWidth)/2, SCREEN_HEIGHT - gaugeHeight - 4, gaugeWidth, gaugeHeight, 
-      SSD1306_BLACK);
-
-  display.drawRoundRect((SCREEN_WIDTH - gaugeWidth)/2, SCREEN_HEIGHT - gaugeHeight - 4, gaugeWidth, gaugeHeight,
-      3, SSD1306_WHITE);
-
-  int x = ((SCREEN_WIDTH - gaugeWidth)/2)+2;
-  int y = SCREEN_HEIGHT - gaugeHeight - 4 + 2;
+  x += 2;
+  y += 2;
   display.drawLine(x, y, x+percent, y, SSD1306_WHITE);
 
   display.display();
+}
+
+void displayCls() {
+  display.clearDisplay();
+}
+
+void displayBlitt() {
+  display.display();
+}
+
+void displayTitle(char* str) {
+  display.fillRect(0, 0, SCREEN_WIDTH, 10, SSD1306_BLACK);
+  display.setCursor(0, 0);
+  display.println(str);
+
+  display.display();
+}
+
+void displayIncomingVar(char* varName, uint8_t varType, uint32_t varSize) {
+  displayCls();
+  char msg[64+1]; memset( msg, 0x00, 64+1 );
+  sprintf(msg, "> Var  : %s #%02X\n> Size : %ld", varName, varType, varSize);
+  displayTitle(msg);
 }
 
 #endif

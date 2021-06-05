@@ -9,7 +9,7 @@ Xtase - fgalliat @June 04  2021
 - **Expander Hardware**
   - [x] ESP core (wirings)
   - [ ] ESP SPIFFS
-  - [ ] ESP Screen
+  - [x] ESP Screen
   - [ ] ESP Button
   - [ ] ESP Buzzer
   - [ ] ESP / TiComm Control lines

@@ -96,6 +96,10 @@ bool enterRecvVarMode() {
                 uint32_t varSize = ( sizeDef[3+0] << 24 ) + ( sizeDef[3+1] << 16 ) + ( sizeDef[3+2] << 8 ) + ( sizeDef[3+3] );
                 PCSerial.print("(ii) TiComm send a variable of size : "); PCSerial.println( varSize );
 
+                // ------ Screen output --------
+                displayIncomingVar( varName, varType, varSize );
+                // ------ Screen output --------
+
                 while( TISerial.available() <= 0 ) { delay(2); }
 
                 if ( TISerial.available() >= 3 ) {
@@ -105,17 +109,27 @@ bool enterRecvVarMode() {
                         return false;
                     }
 
-                    uint32_t step = (uint32_t)((double)varSize / (double)100.0);
-                    if ( step < 20 ) { step = 20; }
+                    int lastPercent = 0;
+                    long t0 = 0;
 
                     for(uint32_t i=0; i < varSize; i++) {
-                        // FIXME : do better
+                        // FIXME : do better than byte-per-byte
                         while( TISerial.available() <= 0 ) { delay(2); }
                         int bte = TISerial.read();
-                        PCSerial.print( bte, HEX ); PCSerial.print( ' ' );
-                        if ( i % step == 0 ) { displayGauge( (int)( (uint32_t)100 * i / varSize  ) ); }
+                        // PCSerial.print( bte, HEX ); PCSerial.print( ' ' );
+
+                        long t1 = millis();
+                        if ( t1 - t0 > 100 ) {
+                            int percent = (int)( (uint32_t)100 * i / varSize  );
+                            if ( percent - lastPercent > 5 ) { // only if more than 5% delta
+                              displayGauge( percent );
+                              lastPercent = percent;
+                            }
+                            t0 = t1;
+                        }
                     }
-                    PCSerial.println();
+                    displayGauge( 100 );
+                    // PCSerial.println();
 
                     while( TISerial.available() <= 0 ) { delay(2); }
                     if ( TISerial.available() >= 3 ) {
