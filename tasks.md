@@ -102,9 +102,9 @@ Xtase - fgalliat @June 04  2021
   - [x] ls => in DUMMY too
   - [ ] ls only TiVars => in DUMMY too
   - [x] find TiVar
-  - [ ] cat TiVar
+  - [x] cat TiVar
   - [x] hex TiVar
   - [ ] text TiVar - display only what can be displayed (0x0D -> 0x0A ? on TEXT Vars) => in DUMMY too
   - [ ] upload TiVar to ESP Storage (-then- to Ti ?)
-  - [ ] ESP Storage to Ti (see the "/SP" tiComm protocol ...) => then [ ESP Storage to Ti ] by tiAction handler
+  - [x] send TiVar : ESP Storage to Ti (see the "/SP" tiComm protocol ...) => then [ ESP Storage to Ti ] by tiAction handler
   - [ ] TEXT Vars / File create / ?edit? w/ telnet stdin

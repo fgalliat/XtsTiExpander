@@ -255,17 +255,22 @@ bool sendTiVar(char* varName) {
         return false;
     }
 
-    long varSize = file.size();
+    long varSize = file.size() - 2; // -2 is for TiComm protocol
     displayOutgoingVar( varName, varType, varSize );
 
     int lastPercent = 0;
     long t0 = 0;
 
     TISerial.print("\\SP");
+    delay(5);
     TISerial.write( (uint8_t)(varSize >> 8) ); TISerial.write( (uint8_t)(varSize % 256) );
+    delay(5);
     TISerial.print( varName ); TISerial.write( 0x00 );
+    delay(5);
     TISerial.write( 0x00 ); // non ASM content
     TISerial.write( 0x00 ); // no autorun
+
+    while( TISerial.available() == 0 ) { delay(2); }
     char resp[64+1]; memset( resp, 0x00, 64+1 );
     TISerial.readBytesUntil( '\n', resp, 64 );
     if ( ! startsWith( resp, "I:" ) ) {
@@ -277,6 +282,7 @@ bool sendTiVar(char* varName) {
         file.close();
         return false;
     }
+
     while( TISerial.available() == 0 ) { delay(2); }
     int code = TISerial.read();
     // code should be 0x01
@@ -286,11 +292,13 @@ bool sendTiVar(char* varName) {
     char packet[ packetLen ];
     long i = 0;
 
-    while( file.available() ) {
+    while( file.available() ) { // sends varSize + 2 bytes (whole file)
+      int read = file.readBytes( packet, min( packetLen, file.available() ) );
+
       while( TISerial.available() == 0 ) { delay(2); }
       int handshake = TISerial.read();
       // handshake should be 0x02
-      int read = file.readBytes( packet, packetLen );
+
       TISerial.write( (uint8_t*)packet, read);
 
       i += read;
@@ -308,11 +316,12 @@ bool sendTiVar(char* varName) {
     }
 
     memset( resp, 0x00, 64+1 );
+    while( TISerial.available() == 0 ) { delay(2); }
     TISerial.readBytesUntil( '\n', resp, 64 );
     if ( ! startsWith( resp, "I:" ) ) {
         // may had an error
         displayCls();
-        displayTitle("(!!) FAIL WH.SENDING VAR");
+        displayTitle("(!!) FAIL EOF VAR");
         displayPrintln( resp );
         displayBlitt();
         file.close();
