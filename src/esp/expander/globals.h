@@ -26,3 +26,9 @@
 // #define FORMAT_SPIFFS_IF_FAILED true
 #define FORMAT_SPIFFS_IF_FAILED false
 
+// ---------- Generic functions -----------
+
+bool startsWith(char* strFull, char* strToFind) {
+    if ( strToFind == NULL || strFull == NULL ) { return false; }
+    return strncmp( strFull, strToFind, strlen( strToFind ) ) == 0;
+}

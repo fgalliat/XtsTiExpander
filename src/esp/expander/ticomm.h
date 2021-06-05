@@ -31,7 +31,16 @@
  // + sent value 16b MSB-LSB
  #define IN_BIN_SENDCBL "\x89\xCB"
 
- // ========= Comm ROUTINES Section =========
+ // ========= TiVar Types Section =========
+ #define VAR_STRING 0x0C
+
+ // ========= TiAction Request Section ====
+ // max action length
+ #define TI_ACTION_LENGTH 64
+
+ // ========= Comm ROUTINES Section =======
+
+ void handleTiActionRequest(char* str);
 
  bool enterDummyMode() {
   PCSerial.println("(ii) TiComm entered in Dummy Mode");
@@ -96,11 +105,21 @@ bool enterRecvVarMode() {
                 uint32_t varSize = ( sizeDef[3+0] << 24 ) + ( sizeDef[3+1] << 16 ) + ( sizeDef[3+2] << 8 ) + ( sizeDef[3+3] );
                 PCSerial.print("(ii) TiComm send a variable of size : "); PCSerial.println( varSize );
 
+                bool tiActionRequest = false;
+                char tiActionValue[TI_ACTION_LENGTH+1];
+                int  tiActionValueCursor = 0;
+
+                if ( strncmp(varName, "tiaction", 8) == 0 && varType == VAR_STRING ) {
+                    memset( tiActionValue, 0x00, TI_ACTION_LENGTH+1 );
+                    tiActionRequest = true;
+                }
+
                 // ------ Screen output --------
                 displayIncomingVar( varName, varType, varSize );
                 // ------ Screen output --------
+
                 // ------ Storage output --------
-                bool store = STORAGE_READY;
+                bool store = STORAGE_READY && ( ! tiActionRequest );
                 File f;
                 if ( store ) {
                     int error = 0;
@@ -136,20 +155,40 @@ bool enterRecvVarMode() {
                             f.write( bte );
                         }
 
-                        long t1 = millis();
-                        if ( t1 - t0 > 100 ) {
-                            int percent = (int)( (uint32_t)100 * i / varSize  );
-                            if ( percent - lastPercent > 5 ) { // only if more than 5% delta
-                              displayGauge( percent );
-                              lastPercent = percent;
+                        if ( tiActionRequest ) {
+                            if ( i > 0 ) { // skip 1st 0x00
+                                if ( bte == 0x00 ) { // stop to next 0x00 - 0x2D - CHK - CHK 
+                                    tiActionValueCursor = -99;
+                                }
+                                if ( tiActionValueCursor >= 0 ) { // sure we can write String value
+                                    tiActionValue[ tiActionValueCursor++ ] = (char)bte;
+                                }
                             }
-                            t0 = t1;
+                            // displayByteHex( bte );
+                        }
+                        else {
+                            // ----- Progress Gauge -----
+                            long t1 = millis();
+                            if ( t1 - t0 > 100 ) {
+                                int percent = (int)( (uint32_t)100 * i / varSize  );
+                                if ( percent - lastPercent > 5 ) { // only if more than 5% delta
+                                displayGauge( percent );
+                                lastPercent = percent;
+                                }
+                                t0 = t1;
+                            }
                         }
                     }
                     if ( store ) {
                         f.close();
                     }
-                    displayGauge( 100 );
+                    if ( tiActionRequest ) {
+                        displayPrintln( "= ACTION REQ =" );
+                        displayPrintln( tiActionValue );
+                        displayBlitt();
+                    } else { // regular Var ...
+                        displayGauge( 100 );
+                    }
                     // PCSerial.println();
 
                     while( TISerial.available() <= 0 ) { delay(2); }
@@ -160,6 +199,12 @@ bool enterRecvVarMode() {
                             return false;
                         }
                         PCSerial.println("(ii) TiComm send a variable : EOF ");
+
+
+                        if ( tiActionRequest ) {
+                            handleTiActionRequest( tiActionValue );
+                        }
+
                         return true; // No errors
                     }
                 }
@@ -182,5 +227,28 @@ bool recvCBLValue() {
   }
   return false;
 }
+
+// -------------------------------------------------
+void handleTiActionRequest(char* str) {
+    if ( startsWith( str, "get:" ) ) {
+        char* filename = &str[4];
+        displayCls();
+        displayPrintln("> Req a file : ");
+        displayPrintln( filename );
+        displayBlitt();
+    } else if ( startsWith( str, "wifi:" ) ) {
+        char* op = &str[5];
+        displayCls();
+        displayPrintln("> Req a WiFi Op : ");
+        displayPrintln( op );
+        displayBlitt();
+    } else {
+        displayCls();
+        displayPrintln("> Req a ???? : ");
+        displayPrintln( str );
+        displayBlitt();
+    }
+}
+
 
 #endif

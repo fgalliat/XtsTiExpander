@@ -19,7 +19,7 @@ Xtase - fgalliat @June 04  2021
 
   - [x] Ti -> Storage (Ti request)
   - [ ] Storage -> Ti (Ti request)
-  - [ ] PC -> Storage ( -> Ti ) (PC request)
+  - [ ] PC -> Storage ( -> Ti ) (PC request) -- **issue** : Each you connect to an ESP32 by USBSerial - it reboots
 
 - **Expander Functions**
 
@@ -64,9 +64,29 @@ Xtase - fgalliat @June 04  2021
       : SendCalc varname
       ```
   
-      - [ ]  => when receive this specific variable => triggers an ESP -> TiComm -> Ti silent file sending
-      - [ ] that seems to work : Exp. recv "> Var : varname #0C / > Size : 13"
+      - [ ] => when receive this specific variable => triggers an ESP -> TiComm -> Ti silent file sending
+      
+      - [x] that seems to work : Exp. recv "> Var : varname #0C / > Size : 13"
+      
       - [ ] make capability to reference packs of files ex. "#system" -> varname - esp knows that list-of-files name
+      
+      - [x] **maybe :** 
+      
+        - [x] call 'varname' -> 'tiaction'
+      
+          ```
+          "get:popbin" -> tiaction : SendCalc tiaction -- SYNC Op to get a file from storage
+          "wifi:start" -> tiaction : SendCalc tiaction -- ASYNC Start WiFi + telnet server + telnet handle
+          "wifi:stop" -> tiaction : SendCalc tiaction  -- SYNC Stop WiFi + telnet server
+          "wifi:ssid:xxxx" \___ save in a conf.file on ESP
+          "wifi:psk:xxxx"
+          "wifi:sta"        ___
+          "wifi:ap"        /
+           L---> @least those could be requested by a TiBasic Menu PRGM
+          "url:192.168.1.x/api/sensors/1" ....         -- ASYNC call REST url + writes back 'tiresp' variable + send KeyCode ?
+          ```
+      
+      - [x] write a VarRecv handler for this specific variable name -> decode requested action
   
   - [ ] Use DUMMY MODE for :
   

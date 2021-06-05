@@ -74,6 +74,7 @@ void displayGauge(int percent) {
 
 void displayCls() {
   display.clearDisplay();
+  display.setCursor(0, 0);
 }
 
 void displayBlitt() {
@@ -93,6 +94,16 @@ void displayIncomingVar(char* varName, uint8_t varType, uint32_t varSize) {
   char msg[64+1]; memset( msg, 0x00, 64+1 );
   sprintf(msg, "> Var  : %s #%02X\n> Size : %ld", varName, varType, varSize);
   displayTitle(msg);
+}
+
+void displayByteHex(uint8_t bte) {
+  char msg[3+1]; memset( msg, 0x00, 3+1 );
+  sprintf(msg, "%02X ", bte);
+  display.print( msg );
+}
+
+void displayPrintln(char* str) {
+  display.println( str );
 }
 
 #endif

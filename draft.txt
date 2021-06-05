@@ -1,0 +1,9 @@
+tiaction : 
+
+: "file2get" -> tiaction
+: SendCalc tiaction
+
+> Var  : tiaction #0C
+> Size : 13
+00 66 69 6C 65 32 67 65 74 00 2D 4A 03
+ 0  f  i  l  e  2  g  e  t  0 String Signature + CHK + CHK
