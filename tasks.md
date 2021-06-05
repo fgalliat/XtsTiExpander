@@ -46,7 +46,21 @@ Xtase - fgalliat @June 04  2021
       
       
       
-    - [ ] CBL String comand (need multi bytes)
+    - [ ] ~~**CBL String comand** (need multi bytes)~~
+  
+      - [ ] disconnect ESP from TiComm (to check protocol)
+      - [ ] check # between Send { 255 } / Send { 255, 4 } / **Send "coucou" -> seems to not be possible** (even if it's the protocol used...)
+  
+    - [ ] **SendCalc** :
+  
+      ```
+      : "file2get" -> varname
+      : SendCalc varname
+      ```
+  
+      - [ ]  => when receive this specific variable => triggers an ESP -> TiComm -> Ti silent file sending
+      - [ ] that seems to work : Exp. recv "> Var : varname #0C / > Size : 13"
+      - [ ] make capability to reference packs of files ex. "#system" -> varname - esp knows that list-of-files name
   
   - [ ] Use DUMMY MODE for :
   
