@@ -142,5 +142,24 @@
    }
    file.close();
  }
+ 
+ // --- Ti Storage ---
+
+ File createTiFile(const char * varName, uint8_t varType, int &error) {
+   char path[64+1]; memset( path, 0x00, 64+1 );
+   sprintf( path, "%s%s.%02X", TIVAR_DIR, varName, varType );
+   PCSerial.printf("Writing file: %s\r\n", path);
+
+   File file = SPIFFS.open(path, FILE_WRITE);
+   if(!file){
+      PCSerial.println("− failed to open file for writing");
+      error = 1;
+      return file;
+   }
+   error = 0;
+   return file;
+ }
+
+
 
 #endif
