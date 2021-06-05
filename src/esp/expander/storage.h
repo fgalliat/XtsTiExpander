@@ -187,6 +187,35 @@
    return file;
  }
 
+ char* findTiFile(const char * varName) {
+   if ( !STORAGE_READY ) {
+      return NULL;
+   }
+
+   File root = SPIFFS.open("/");
+   if(!root){
+      return NULL;
+   }
+
+   char toFind[64+1]; memset( toFind, 0x00, 64+1 );
+   sprintf(toFind, "%s%s.", TIVAR_DIR, varName);
+
+   File file = root.openNextFile();
+   while(file){
+      if(file.isDirectory()){
+         // .. never appens on SPIFFS
+      } else {
+         char* entryName = (char*)file.name();
+
+         if ( startsWith( entryName, toFind ) ) {
+            return entryName;
+         }
+
+      }
+      file = root.openNextFile();
+   }
+   return NULL;
+ }
 
 
 #endif

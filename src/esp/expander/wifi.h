@@ -149,6 +149,11 @@ void loopTelnet() {
                 } else if ( startsWith( cmd, "hex " ) ) {
                     char* filename = &cmd[4];
                     catToTelnet( &serverClients[i], filename, true );
+                } else if ( startsWith( cmd, "find " ) ) {
+                    char* filename = &cmd[5];
+                    char* found = findTiFile( filename );
+                    serverClients[i].print("Found : ");
+                    serverClients[i].println(found == NULL ? "<NULL>" : found);
                 } else {
                     serverClients[i].println( "???" );
                 }
@@ -169,16 +174,17 @@ void lsToTelnet(Stream* client) {
    lsToStream( client );
 }
 
-// for now : "arduino" (0B) must be called "arduino.0B"
 void catToTelnet(Stream* client, char* varName, bool hexMode/*=false*/) {
    if ( !STORAGE_READY ) {
       client->println("No FileSystem mounted");
       return;
    }
 
-   char path[64+1]; memset(path, 0x00, 64+1);
-   // sprintf( path, "%s%s.%02X", TIVAR_DIR, varName, varType );
-   sprintf( path, "%s%s", TIVAR_DIR, varName );
+   char* path = findTiFile(varName);
+   if ( path == NULL ) {
+       client->print("No such Var : >"); client->print(varName); client->println("<");
+      return;
+   }
 
    if ( ! SPIFFS.exists( path ) ) {
        client->print("No such file : >"); client->print(path); client->println("<");
