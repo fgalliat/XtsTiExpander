@@ -142,6 +142,33 @@
    }
    file.close();
  }
+
+ void lsToStream(Stream* client) {
+   if ( !STORAGE_READY ) {
+      client->println("No FileSystem mounted");
+      return;
+   }
+
+   File root = SPIFFS.open("/");
+   if(!root){
+      client->println("− failed to open directory");
+      return;
+   }
+
+   File file = root.openNextFile();
+   while(file){
+      if(file.isDirectory()){
+         // .. never appens on SPIFFS
+      } else {
+         client->print("  FILE: ");
+         client->print(file.name());
+         client->print("\tSIZE: ");
+         client->println(file.size());
+      }
+      file = root.openNextFile();
+   }
+   client->println( "-EOF-" );
+ }
  
  // --- Ti Storage ---
 

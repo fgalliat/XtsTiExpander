@@ -83,6 +83,9 @@ void stopWiFi() {
   displayBlitt();
 }
 
+void lsToTelnet(Stream* client);
+void catToTelnet(Stream* client, char* varName, bool hexMode=false);
+
 void loopTelnet() {
     if (wifiMulti.run() != WL_CONNECTED) {
         return;
@@ -117,14 +120,41 @@ void loopTelnet() {
         // }
 
         // serverClients[i].write(sbuf, len);
-        
-        // read potential connection termcap ...
-        while(serverClients[i].available()) serverClients[i].read();
 
-        serverClients[i].println( "Hello telnet stranger" );
-        while(serverClients[i].available() == 0) { delay(10); }
-        serverClients[i].println( "Bye" );
-        serverClients[i].stop();
+        // // --------- sequential session ---------
+        // // read potential connection termcap ...
+        // while(serverClients[i].available()) serverClients[i].read();
+
+        // serverClients[i].println( "Hello telnet stranger" );
+        // while(serverClients[i].available() == 0) { delay(10); }
+        // serverClients[i].println( "Bye" );
+        // serverClients[i].stop();
+        // // --------- sequential session ---------
+
+        if(serverClients[i].available()){
+            char cmd[64+1]; memset(cmd, 0x00, 64+1);
+            int len = serverClients[i].readBytesUntil( '\n', cmd, 64 );
+            if ( len > 0 ) {
+                // chop the last '\n'
+                cmd[ len - 1 ] = 0x00;
+
+                if ( startsWith( cmd, "/quit" ) ) {
+                    serverClients[i].println( "Bye" );
+                    serverClients[i].stop();
+                } else if ( startsWith( cmd, "ls" ) ) {
+                    lsToTelnet( &serverClients[i] );
+                } else if ( startsWith( cmd, "cat " ) ) {
+                    char* filename = &cmd[4];
+                    catToTelnet( &serverClients[i], filename, false );
+                } else if ( startsWith( cmd, "hex " ) ) {
+                    char* filename = &cmd[4];
+                    catToTelnet( &serverClients[i], filename, true );
+                } else {
+                    serverClients[i].println( "???" );
+                }
+            }
+        }
+
       }
       else {
         if (serverClients[i]) {
@@ -133,6 +163,45 @@ void loopTelnet() {
       }
     }
 
+}
+
+void lsToTelnet(Stream* client) {
+   lsToStream( client );
+}
+
+// for now : "arduino" (0B) must be called "arduino.0B"
+void catToTelnet(Stream* client, char* varName, bool hexMode/*=false*/) {
+   if ( !STORAGE_READY ) {
+      client->println("No FileSystem mounted");
+      return;
+   }
+
+   char path[64+1]; memset(path, 0x00, 64+1);
+   // sprintf( path, "%s%s.%02X", TIVAR_DIR, varName, varType );
+   sprintf( path, "%s%s", TIVAR_DIR, varName );
+
+   if ( ! SPIFFS.exists( path ) ) {
+       client->print("No such file : >"); client->print(path); client->println("<");
+      return;
+   }
+
+   File file = SPIFFS.open(path);
+   if(!file || file.isDirectory()){
+       client->println("Failed to open file for reading");
+       return;
+   }
+   char hh[4];
+   while(file.available()){
+      if ( hexMode ) {
+        sprintf( hh, "%02X ", file.read() );
+        client->print( hh );
+      } else {
+        client->write(file.read());
+      }
+   }
+
+   file.close();
+   client->println("-EOF-");
 }
 
 
