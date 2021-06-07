@@ -10,7 +10,8 @@ by Xtase - fgalliat @Jun 2021
 
 - The main goal is to provide additional FLASH Storage (that can survive too a Ti-dev-crash), simple Sound & WiFi support to the calculator
 
-  
+
+![Expander & V200](./pictures/v200-expander.jpg)
 
 - ESP32 has been chosen for it's 2x cores speed, SPIFFS 3MB capacity, RAM amount, cheap & easy to find.
 
@@ -32,13 +33,13 @@ by Xtase - fgalliat @Jun 2021
 
   - Push BUTTON
 
-  - battery pack capaility
+  - battery pack capability
 
   - **as Software**
 
   - Ti SendVar -> ESP Storage
 
-  - ESP Storage -> Screen + BTN -> Ti RecvVar (silent mode)
+  - ESP Storage -> Ti RecvVar (silent mode) (Using : Screen + BTN)
 
   - Ti SerialTerm
 
@@ -48,7 +49,7 @@ by Xtase - fgalliat @Jun 2021
 
   - ESP telnet / Serial server
 
-    - store Files on SPIFFS -> then prompt to put those on calc
+    - store/manage VarFiles on SPIFFS -> then prompt to put those on calc
 
     - control some Ti behaviors (...)
 
