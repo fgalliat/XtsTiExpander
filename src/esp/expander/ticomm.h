@@ -346,6 +346,9 @@ void handleTiActionRequest(char* str) {
         displayPrintln("> Req a file : ");
         displayPrintln( filename );
         displayBlitt();
+
+        sendTiVar( filename );
+
     } else if ( startsWith( str, "wifi:" ) ) {
         char* op = &str[5];
         displayCls();
