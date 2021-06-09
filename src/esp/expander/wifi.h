@@ -81,11 +81,8 @@ void stopWiFi() {
 
   displayPrintln("Closed WiFi");
   displayBlitt();
+  WIFI_READY = false;
 }
-
-void lsToTelnet(Stream* client);
-void catToTelnet(Stream* client, char* varName, bool hexMode=false);
-void sendToTi(Stream* client, char* varName);
 
 void loopTelnet() {
     if (wifiMulti.run() != WL_CONNECTED) {
@@ -132,36 +129,9 @@ void loopTelnet() {
         // serverClients[i].stop();
         // // --------- sequential session ---------
 
-        if(serverClients[i].available()){
-            char cmd[64+1]; memset(cmd, 0x00, 64+1);
-            int len = serverClients[i].readBytesUntil( '\n', cmd, 64 );
-            if ( len > 0 ) {
-                // chop the last '\n'
-                cmd[ len - 1 ] = 0x00;
-
-                if ( startsWith( cmd, "/quit" ) ) {
-                    serverClients[i].println( "Bye" );
-                    serverClients[i].stop();
-                } else if ( startsWith( cmd, "ls" ) ) {
-                    lsToTelnet( &serverClients[i] );
-                } else if ( startsWith( cmd, "cat " ) ) {
-                    char* varName = &cmd[4];
-                    catToTelnet( &serverClients[i], varName, false );
-                } else if ( startsWith( cmd, "hex " ) ) {
-                    char* varName = &cmd[4];
-                    catToTelnet( &serverClients[i], varName, true );
-                } else if ( startsWith( cmd, "send " ) ) {
-                    char* varName = &cmd[5];
-                    sendToTi( &serverClients[i], varName );
-                } else if ( startsWith( cmd, "find " ) ) {
-                    char* varName = &cmd[5];
-                    char* found = findTiFile( varName );
-                    serverClients[i].print("Found : ");
-                    serverClients[i].println(found == NULL ? "<NULL>" : found);
-                } else {
-                    serverClients[i].println( "???" );
-                }
-            }
+        bool shouldKill = sessionLoop( &serverClients[i], SHELL_MODE_TELNET);
+        if ( shouldKill ) {
+          serverClients[i].stop();
         }
 
       }
@@ -171,62 +141,8 @@ void loopTelnet() {
         }
       }
     }
-
 }
 
-// from ticomm.h
-bool sendTiVar(char* varName, Stream* client);
-
-void sendToTi(Stream* client, char* varName) {
-  // sends from SPIFFS to calc
-  client->println("Sending variable");
-  bool ok = sendTiVar(varName, client);
-  if ( ok ) {
-    client->println("Sucessfully sent variable");
-  } else {
-    client->println("Failed to send variable");
-  }
-}
-
-void lsToTelnet(Stream* client) {
-   lsToStream( client );
-}
-
-void catToTelnet(Stream* client, char* varName, bool hexMode/*=false*/) {
-   if ( !STORAGE_READY ) {
-      client->println("No FileSystem mounted");
-      return;
-   }
-
-   char* path = findTiFile(varName);
-   if ( path == NULL ) {
-       client->print("No such Var : >"); client->print(varName); client->println("<");
-      return;
-   }
-
-   if ( ! SPIFFS.exists( path ) ) {
-       client->print("No such file : >"); client->print(path); client->println("<");
-      return;
-   }
-
-   File file = SPIFFS.open(path);
-   if(!file || file.isDirectory()){
-       client->println("Failed to open file for reading");
-       return;
-   }
-   char hh[4];
-   while(file.available()){
-      if ( hexMode ) {
-        sprintf( hh, "%02X ", file.read() );
-        client->print( hh );
-      } else {
-        client->write(file.read());
-      }
-   }
-
-   file.close();
-   client->println("-EOF-");
-}
 
 
 // void loop() {

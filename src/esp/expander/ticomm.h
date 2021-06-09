@@ -57,17 +57,24 @@
       }
 
       while ( TISerial.available() > 0 ) {
-          if ( TISerial.peek() == IN_BIN_EXIT_DUMMY[0] ) {
-              TISerial.read();
-              if ( TISerial.peek() == IN_BIN_EXIT_DUMMY[1] ) {
-                TISerial.read();
-                PCSerial.println("(ii) TiComm exited from Dummy Mode");
-                inDummy = false;
-                break;
-              }
-              PCSerial.write( TISerial.read() );
-          }
-          PCSerial.write( TISerial.read() );
+        if ( TISerial.peek() == IN_BIN_EXIT_DUMMY[0] ) {
+            TISerial.read();
+            if ( TISerial.peek() == IN_BIN_EXIT_DUMMY[1] ) {
+            TISerial.read();
+            PCSerial.println("(ii) TiComm exited from Dummy Mode");
+            inDummy = false;
+            break;
+            }
+            PCSerial.write( TISerial.read() );
+        }
+          
+        // PCSerial.write( TISerial.read() ); // to PC DUMMY
+
+        bool shouldKill = sessionLoop( &TISerial, SHELL_MODE_DUMMY);
+        if ( shouldKill ) {
+            // nothing todo .. LATER : try to kill Dummy mode by sending escSequence
+        }
+
       }
   }
   return true;  

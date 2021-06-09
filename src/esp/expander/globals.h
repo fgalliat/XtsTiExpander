@@ -26,6 +26,12 @@
 // #define FORMAT_SPIFFS_IF_FAILED true
 #define FORMAT_SPIFFS_IF_FAILED false
 
+#define SHELL_MODE_TELNET 0x01
+#define SHELL_MODE_SERIAL 0x02
+#define SHELL_MODE_DUMMY  0x03
+
+
+
 // ---------- Generic functions -----------
 
 bool startsWith(char* strFull, char* strToFind) {

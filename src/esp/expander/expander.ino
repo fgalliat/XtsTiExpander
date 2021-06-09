@@ -21,6 +21,8 @@
 
 #include "screen.h"
 #include "storage.h"
+
+#include "shell.h"
 #include "wifi.h"
 
 #include "ticomm.h"
@@ -62,37 +64,42 @@ void loop() {
         loopTelnet();
     }
 
-    if ( PCSerial.available() > 0 ) { // something from PC
-        while( PCSerial.available() > 0 ) { PCSerial.read(); }
-        PCSerial.println("OK let me see if it works....");
+    // if ( PCSerial.available() > 0 ) { // something from PC
+    //     while( PCSerial.available() > 0 ) { PCSerial.read(); }
+    //     PCSerial.println("OK let me see if it works....");
 
-        // WORKING
-        // int error = 0;
-        // File f = createTiFile("hello", 0x1C, error);
-        // if ( error != 0 ) {
-        //     PCSerial.println("There was a WRITE error !");
-        // } else {
-        //     f.println( "Hello World" );
-        //     f.close();
-        // }
+    //     // WORKING
+    //     // int error = 0;
+    //     // File f = createTiFile("hello", 0x1C, error);
+    //     // if ( error != 0 ) {
+    //     //     PCSerial.println("There was a WRITE error !");
+    //     // } else {
+    //     //     f.println( "Hello World" );
+    //     //     f.close();
+    //     // }
 
-        listRoot();
+    //     listRoot();
 
-        // WORKING
-        // TISerial.print("\\SS\n"); // request a ScreenDump on Ti (ascii mode)
-        // while( TISerial.available() <= 0 ) { delay(10); }
+    //     // WORKING
+    //     // TISerial.print("\\SS\n"); // request a ScreenDump on Ti (ascii mode)
+    //     // while( TISerial.available() <= 0 ) { delay(10); }
 
-        // const int dumpSize = 240 * 128;
-        // int cpt = 0;
-        // while( cpt < dumpSize ) {
-        //     while( TISerial.available() <= 0 ) { delay(2); }
-        //     while( TISerial.available() > 0 ) {
-        //         // not very efficient ... just for test purposes
-        //         PCSerial.write( TISerial.read() );
-        //         cpt++;
-        //     }
-        // }
+    //     // const int dumpSize = 240 * 128;
+    //     // int cpt = 0;
+    //     // while( cpt < dumpSize ) {
+    //     //     while( TISerial.available() <= 0 ) { delay(2); }
+    //     //     while( TISerial.available() > 0 ) {
+    //     //         // not very efficient ... just for test purposes
+    //     //         PCSerial.write( TISerial.read() );
+    //     //         cpt++;
+    //     //     }
+    //     // }
 
+    // }
+
+    bool shouldKill = sessionLoop( &PCSerial, SHELL_MODE_SERIAL);
+    if ( shouldKill ) {
+        // nothing todo
     }
 
     if ( TISerial.available() > 0 ) { // something from TiComm
