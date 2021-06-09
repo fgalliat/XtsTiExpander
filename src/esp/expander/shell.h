@@ -16,7 +16,7 @@ bool sendTiVar(char* varName, Stream* client);
 void startWiFi();
 void stopWiFi();
 
-void sendToTi(Stream* client, char* varName) {
+void sendToTi(Stream* client, char* varName, int shellMode) {
   // sends from SPIFFS to calc
   client->println("Sending variable");
   bool ok = sendTiVar(varName, client);
@@ -27,7 +27,7 @@ void sendToTi(Stream* client, char* varName) {
   }
 }
 
-void catToStream(Stream* client, char* varName, bool hexMode/*=false*/) {
+void catToStream(Stream* client, char* varName, bool hexMode/*=false*/, int shellMode) {
    if ( !STORAGE_READY ) {
       client->println("No FileSystem mounted");
       return;
@@ -49,13 +49,23 @@ void catToStream(Stream* client, char* varName, bool hexMode/*=false*/) {
        client->println("Failed to open file for reading");
        return;
    }
-   char hh[4];
+   char hh[4]; int charCpt = 0;
    while(file.available()){
       if ( hexMode ) {
         sprintf( hh, "%02X ", file.read() );
         client->print( hh );
+        charCpt += 3;
       } else {
         client->write(file.read());
+        charCpt += 1;
+      }
+
+      // slow down in dummy mode
+      if ( shellMode == SHELL_MODE_DUMMY ) {
+          if ( charCpt >= 32 ) {
+              delay(100);
+              charCpt = 0;
+          }
       }
    }
 
@@ -109,17 +119,17 @@ void catToStream(Stream* client, char* varName, bool hexMode/*=false*/) {
             // serverClients[i].stop();
             return true; // telnet client should be closed / DummyMode should End / Serial -> don't care
         } else if ( startsWith( cmd, "ls" ) ) {
-            lsToStream( client );
+            lsToStream( client, shellMode );
         } else if ( startsWith( cmd, "cat " ) ) {
             char* varName = &cmd[4];
-            catToStream( client, varName, false );
+            catToStream( client, varName, false, shellMode );
         } else if ( startsWith( cmd, "hex " ) ) {
             char* varName = &cmd[4];
             // client->print( ">>" ); client->print( varName ); client->println( "<<" );
-            catToStream( client, varName, true );
+            catToStream( client, varName, true, shellMode );
         } else if ( startsWith( cmd, "send " ) ) {
             char* varName = &cmd[5];
-            sendToTi( client, varName );
+            sendToTi( client, varName, shellMode );
         } else if ( startsWith( cmd, "find " ) ) {
             char* varName = &cmd[5];
             char* found = findTiFile( varName );

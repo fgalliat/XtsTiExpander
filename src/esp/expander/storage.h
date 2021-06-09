@@ -143,7 +143,7 @@
    file.close();
  }
 
- void lsToStream(Stream* client) {
+ void lsToStream(Stream* client, int shellMode) {
    if ( !STORAGE_READY ) {
       client->println("No FileSystem mounted");
       return;
@@ -160,10 +160,21 @@
       if(file.isDirectory()){
          // .. never appens on SPIFFS
       } else {
-         client->print("  FILE: ");
-         client->print(file.name());
-         client->print("\tSIZE: ");
-         client->println(file.size());
+         char* entryName = (char*)file.name();
+         int from = strlen(TIVAR_DIR);
+
+         // list only TiVars
+         if ( startsWith( entryName, TIVAR_DIR ) ) {
+            client->print( &entryName[from] );
+            client->print(" (");
+            client->print(file.size());
+            client->println(")");
+
+            // slow down in dummy mode
+            if ( shellMode == SHELL_MODE_DUMMY ) {
+               delay(150);
+            }
+         }
       }
       file = root.openNextFile();
    }
