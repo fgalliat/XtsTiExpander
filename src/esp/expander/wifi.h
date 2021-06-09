@@ -175,12 +175,12 @@ void loopTelnet() {
 }
 
 // from ticomm.h
-bool sendTiVar(char* varName);
+bool sendTiVar(char* varName, Stream* client);
 
 void sendToTi(Stream* client, char* varName) {
   // sends from SPIFFS to calc
   client->println("Sending variable");
-  bool ok = sendTiVar(varName);
+  bool ok = sendTiVar(varName, client);
   if ( ok ) {
     client->println("Sucessfully sent variable");
   } else {

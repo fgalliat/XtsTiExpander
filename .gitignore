@@ -5,3 +5,4 @@ desktop.ini
 .vscode/
 *~
 libs/Adafruit_SSD1306
+*.class

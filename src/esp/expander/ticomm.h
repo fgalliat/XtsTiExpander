@@ -33,6 +33,11 @@
 
  // ========= TiVar Types Section =========
  #define VAR_STRING 0x0C
+ #define VAR_TEXT 0x0B
+ #define VAR_ASM 0x21
+ #define VAR_BAS 0x12
+ // not sure ...
+ #define VAR_OTH 0x1C
 
  // ========= TiAction Request Section ====
  // max action length
@@ -146,7 +151,13 @@ bool enterRecvVarMode() {
                     int lastPercent = 0;
                     long t0 = 0;
 
+                    const int BLOC_LEN = 64;
+                    const int SEQ_HANDSHAKE = 0x01;
+                    bool sentLastHsk = false;
+
                     for(uint32_t i=0; i < varSize; i++) {
+                        sentLastHsk = false;
+
                         // FIXME : do better than byte-per-byte
                         while( TISerial.available() <= 0 ) { delay(2); }
                         int bte = TISerial.read();
@@ -178,7 +189,16 @@ bool enterRecvVarMode() {
                                 t0 = t1;
                             }
                         }
+
+                        if ( i % BLOC_LEN == BLOC_LEN - 1 ) { 
+                            TISerial.write(SEQ_HANDSHAKE);
+                            sentLastHsk = true;
+                        }
                     }
+                    if ( !sentLastHsk ) {
+                        TISerial.write(SEQ_HANDSHAKE);
+                    }
+
                     if ( store ) {
                         f.close();
                     }
@@ -229,7 +249,7 @@ bool recvCBLValue() {
 }
 
 // Ti silent mode
-bool sendTiVar(char* varName) {
+bool sendTiVar(char* varName, Stream* client) {
     // read potential Garbage datas
     while ( TISerial.available() ) { TISerial.read(); }
 
@@ -255,8 +275,15 @@ bool sendTiVar(char* varName) {
         return false;
     }
 
-    long varSize = file.size() - 2; // -2 is for TiComm protocol
-    displayOutgoingVar( varName, varType, varSize );
+    // long varSize = file.size() - 2; // -2 is for TiComm protocol
+    // file.read(); // size MSB
+    // file.read(); // size LSB
+
+    long fileSize = file.size();
+    long varSize = fileSize-2; // w/o chkLen
+
+
+    displayOutgoingVar( varName, varType, varSize /*+ 2*/ );
 
     int lastPercent = 0;
     long t0 = 0;
@@ -267,12 +294,22 @@ bool sendTiVar(char* varName) {
     delay(5);
     TISerial.print( varName ); TISerial.write( 0x00 );
     delay(5);
-    TISerial.write( 0x00 ); // non ASM content
+
+    // TISerial.write( varType == VAR_ASM ? 0x00 : 0x01 ); // ASM / PRGM content -> see later for other types
+    TISerial.write( varType ); // modification on XtsTiLink_gh project
+
+    delay(5);
     TISerial.write( 0x00 ); // no autorun
 
     while( TISerial.available() == 0 ) { delay(2); }
-    char resp[64+1]; memset( resp, 0x00, 64+1 );
-    TISerial.readBytesUntil( '\n', resp, 64 );
+    char resp[128+1]; memset( resp, 0x00, 128+1 );
+    TISerial.readBytesUntil( '\n', resp, 128 );
+
+    if ( client != NULL ) {
+        client->print("(ii) ");
+        client->println( resp );
+    }
+
     if ( ! startsWith( resp, "I:" ) ) {
         // may had an error
         displayCls();
@@ -286,20 +323,42 @@ bool sendTiVar(char* varName) {
     while( TISerial.available() == 0 ) { delay(2); }
     int code = TISerial.read();
     // code should be 0x01
+
+    if ( code != 1 && client != NULL) {
+        client->println("(!!) not ready to send");
+    }
+
     TISerial.write( 0x00 ); // - ready to send datas
 
     const int packetLen = 64;
     char packet[ packetLen ];
     long i = 0;
 
-    while( file.available() ) { // sends varSize + 2 bytes (whole file)
-      int read = file.readBytes( packet, min( packetLen, file.available() ) );
+    while( i < fileSize-2 ) { // no checkSum
+    //   int buffLen = min( packetLen, file.available() );
+    //   if ( i + buffLen == varSize ) {
+    //       buffLen -= 2; // Cf fileSize - 2
+    //   }
+      memset( packet, 0x00, packetLen );
+
+      int buffLen = packetLen;
+      if ( i + buffLen > (fileSize-0) ) {
+          buffLen = (fileSize-0) - i;
+      }
+
+      int read = file.readBytes( packet, buffLen );
 
       while( TISerial.available() == 0 ) { delay(2); }
       int handshake = TISerial.read();
       // handshake should be 0x02
+      if ( handshake != 2 && client != NULL) {
+        client->println("(!!) not an handshake");
+      }
 
-      TISerial.write( (uint8_t*)packet, read);
+      int wrote = TISerial.write( (uint8_t*)packet, read);
+      if ( wrote != read && client != NULL) {
+        client->println("(!!) could not send all");
+      }
 
       i += read;
 
@@ -315,9 +374,29 @@ bool sendTiVar(char* varName) {
         }
     }
 
-    memset( resp, 0x00, 64+1 );
-    while( TISerial.available() == 0 ) { delay(2); }
-    TISerial.readBytesUntil( '\n', resp, 64 );
+    int oups = TISerial.available();
+    if ( oups > 0 && client != NULL) {
+        client->println("Oups it remains something");
+        for(int i=0; i < oups; i++) {
+            char tmp[8];
+            int r = TISerial.read();
+            sprintf(tmp, "%02X (%c) ", r, (char)r);
+            client->print( tmp );
+        }
+        client->println( "-EOT-" );
+    }
+
+    delay(300); // wait to be sure
+
+    memset( resp, 0x00, 128+1 );
+    while( TISerial.available() == 0 ) { delay(100); }
+    TISerial.readBytesUntil( '\n', resp, 128 );
+
+    if ( client != NULL ) {
+        client->print("(ii) ");
+        client->println( resp );
+    }
+
     if ( ! startsWith( resp, "I:" ) ) {
         // may had an error
         displayCls();
@@ -334,6 +413,7 @@ bool sendTiVar(char* varName) {
     file.close();
 
     // durring that time - the Arduino ProMini (TiComm) reboots ...
+    TISerial.print("\\SR");
 
     return true;   
 }
@@ -347,7 +427,7 @@ void handleTiActionRequest(char* str) {
         displayPrintln( filename );
         displayBlitt();
 
-        sendTiVar( filename );
+        sendTiVar( filename, NULL );
 
     } else if ( startsWith( str, "wifi:" ) ) {
         char* op = &str[5];
